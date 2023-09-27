@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NutrifeelCore.Domain\NutrifeelCore.Domain.csproj" />
+    <ProjectReference Include="..\NutrifeelCore.Infraestructure\NutrifeelCore.Infraestructure.csproj" />
+  </ItemGroup>
+
+</Project>
