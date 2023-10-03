@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using NutrifeelCore.Api.Model;
 using NutrifeelCore.Domain.Domain.Identity;
 using NutrifeelCore.Infraestructure.Service;
+using NutrifeelCore.Infraestructure.Settings;
 using NutrifeelCore.Secutity;
 
 namespace NutrifeelCore.Api.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class AccountController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -31,7 +34,7 @@ namespace NutrifeelCore.Api.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
+        public async Task<object> Login([FromBody] LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -90,59 +93,67 @@ namespace NutrifeelCore.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
+        public async Task<object> Register([FromBody] RegisterViewModel model)
         {
+            ResultBase response = new ();
             string jwtToken = string.Empty;
-
-            if (ModelState.IsValid)
+            try
             {
-                // We can utilise the model
-                var existingUser = await _userManager.FindByEmailAsync(model.Email);
-
-                if (existingUser != null)
+                if (ModelState.IsValid)
                 {
-                    return BadRequest(new
+                    var existingUser = await _userManager.FindByEmailAsync(model.Email);
+
+                    if (existingUser != null)
                     {
-                        Errors = "Email already in use",
-                        Success = false
-                    });
-                }
-
-                var user = new ApplicationUser
-                {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName
-                };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User created a new account with password.");
-                    try
-                    {
-                        var newuser = await _userManager.FindByEmailAsync(model.Email);
-
-                        var codeEmailConfirmation = await _userManager.GenerateEmailConfirmationTokenAsync(newuser);
-
-                        await _customEmailSender.SendEmailAsync(newuser.Email, "StudyProject TOKEN", codeEmailConfirmation);
+                        response.State = false;
+                        response.Message = "El correo se encuentra registrado";
+                        return response;
                     }
-                    catch (Exception ex)
-                    {
 
+                    var user = new ApplicationUser
+                    {
+                        UserName = model.Email,
+                        Email = model.Email,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName
+                    };
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("User created a new account with password.");
+
+                        var newuser = await _userManager.FindByEmailAsync(model.Email);
+                        var codeEmailConfirmation = await _userManager.GenerateEmailConfirmationTokenAsync(newuser);
+                        await _customEmailSender.SendEmailAsync(newuser.Email, "Nutrifeel TOKEN", codeEmailConfirmation);
+
+                    }
+                    else
+                    {
+                        response.State = false;
+                        response.MessageException = result.Errors.ToString();
+                        return response;
                     }
                 }
                 else
-                    return BadRequest(result.Errors);
+                {
+                    response.State = false;
+                    response.MessageException = ModelState.ToString();
+                    return response;
+                }
+                response.State = true;
+                response.Message = "Usuario creado";
+                return response;
             }
-            else
-                return BadRequest(ModelState);
-
-            return Ok(jwtToken); // passtoken
+            catch (Exception ex)
+            {
+                response.State = false;
+                response.MessageException = ex.ToString();
+                return response;
+            }
         }
 
         [HttpPost("ValidateRegister")]
-        public async Task<IActionResult> ValidateRegister([FromBody] LoginViewModel model, string emailCode)
+        public async Task<object> ValidateRegister([FromBody] LoginViewModel model, string emailCode)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
@@ -161,7 +172,7 @@ namespace NutrifeelCore.Api.Controllers
         }
 
         [HttpPost("SendTokenEmail")]
-        public async Task<IActionResult> SendTokenEmail([FromBody] LoginViewModel model)
+        public async Task<object> SendTokenEmail([FromBody] LoginViewModel model)
         {
             string jwtToken = string.Empty;
 
