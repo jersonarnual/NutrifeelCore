@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using NutrifeelCore.Domain.Context;
 using NutrifeelCore.Domain.Domain.Identity;
+using NutrifeelCore.Domain.Interface;
+using NutrifeelCore.Domain.Repository;
 using NutrifeelCore.Domain.Security;
 using NutrifeelCore.Infraestructure.Service;
 using NutrifeelCore.Infraestructure.Settings;
@@ -25,8 +27,7 @@ namespace NutrifeelCore.Api
             services.AddIdentity<ApplicationUser, ApplicationRole>()
                                 .AddEntityFrameworkStores<NutrifeelContext>()
                                 .AddDefaultTokenProviders();
-
-            services.AddScoped<ICustomEmailSender, CustomEmailSender>();
+            LoadScopes(services);
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -61,5 +62,12 @@ namespace NutrifeelCore.Api
             });
 
         }
+        #region private method
+        private static void LoadScopes(IServiceCollection services)
+        {
+            services.AddScoped(typeof(IDefaultRepository<>), typeof(DefaultRepository<>));
+            services.AddScoped<ICustomEmailSender, CustomEmailSender>();
+        }
+        #endregion
     }
 }
