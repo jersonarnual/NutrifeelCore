@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NutrifeelCore.Domain.Domain;
 using NutrifeelCore.Domain.Domain.Identity;
+using NutrifeelCore.Domain.Domain.MasterTable;
 using System.ComponentModel.DataAnnotations;
 
 namespace NutrifeelCore.Domain.Context
@@ -20,19 +23,31 @@ namespace NutrifeelCore.Domain.Context
             // this.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         }
 
+        public virtual DbSet<City> City { get; set; }
+        public virtual DbSet<Country> Coutry { get; set; }
+        public virtual DbSet<IdentifierType> IdentifierTypes { get; set; }
+        public virtual DbSet<Languages> Languages { get; set; }
+        public virtual DbSet<Profession> Professions { get; set; }
+        public virtual DbSet<CurriculumPerson> CurriculumPeople { get; set; }
+        public virtual DbSet<Person> Person { get; set; }
+        public virtual DbSet<PersonDetail> PersonDetails { get; set; }
+        public virtual DbSet<ProfessionalService> ProfessionalServices { get; set; }
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //if (!optionsBuilder.IsConfigured)
-            //{
-            //    //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-            //    optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=Blogging;Trusted_Connection=True;");
-            //}
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Ignore<ValidationResult>();
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Person>()
+                .HasOne(t => t.ApplicationUser)
+                .WithOne(u => u.Person)
+                .HasForeignKey<Person>(t => t.ApplicationUserId);
 
             modelBuilder.Entity<ApplicationUser>(b =>
             {
