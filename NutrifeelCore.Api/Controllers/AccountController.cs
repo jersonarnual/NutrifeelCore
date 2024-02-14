@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NutrifeelCore.Api.Model;
 using NutrifeelCore.Domain.Domain.Identity;
@@ -93,53 +94,50 @@ namespace NutrifeelCore.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<object> Register([FromBody] RegisterViewModel model)
+        public async Task<object> RegisterClient([FromBody] RegisterViewModel model)
         {
-            ResultBase response = new ();
-            string jwtToken = string.Empty;
+            ResultBase response = new ResultBase();
             try
             {
-                if (ModelState.IsValid)
-                {
-                    var existingUser = await _userManager.FindByEmailAsync(model.Email);
-
-                    if (existingUser != null)
-                    {
-                        response.State = false;
-                        response.Message = "El correo se encuentra registrado";
-                        return response;
-                    }
-
-                    var user = new ApplicationUser
-                    {
-                        UserName = model.Email,
-                        Email = model.Email,
-                        FirstName = model.FirstName,
-                        LastName = model.LastName
-                    };
-                    var result = await _userManager.CreateAsync(user, model.Password);
-                    if (result.Succeeded)
-                    {
-                        _logger.LogInformation("User created a new account with password.");
-
-                        var newuser = await _userManager.FindByEmailAsync(model.Email);
-                        var codeEmailConfirmation = await _userManager.GenerateEmailConfirmationTokenAsync(newuser);
-                        await _customEmailSender.SendEmailAsync(newuser.Email, "Nutrifeel TOKEN", codeEmailConfirmation);
-
-                    }
-                    else
-                    {
-                        response.State = false;
-                        response.MessageException = result.Errors.ToString();
-                        return response;
-                    }
-                }
-                else
+                if (!ModelState.IsValid)
                 {
                     response.State = false;
                     response.MessageException = ModelState.ToString();
                     return response;
                 }
+
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    response.State = false;
+                    response.Message = "El correo se encuentra registrado";
+                    return response;
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (!result.Succeeded)
+                {
+                    response.State = false;
+                    response.MessageException = result.Errors.ToString();
+                    return response;
+                }
+
+                var role = model.IsAlly ? "Aliado" : "Cliente";
+                await _userManager.AddToRoleAsync(user, role);
+
+                _logger.LogInformation("User created a new account with password.");
+
+                var codeEmailConfirmation = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                await _customEmailSender.SendEmailAsync(user.Email, "Nutrifeel TOKEN", codeEmailConfirmation);
+
                 response.State = true;
                 response.Message = "Usuario creado";
                 return response;
@@ -152,6 +150,7 @@ namespace NutrifeelCore.Api.Controllers
             }
         }
 
+       
         [HttpPost("ValidateRegister")]
         public async Task<object> ValidateRegister([FromBody] LoginViewModel model, string emailCode)
         {
@@ -201,6 +200,33 @@ namespace NutrifeelCore.Api.Controllers
                 return BadRequest(ModelState);
 
             return Ok(); // passtoken
+        }
+
+        [HttpPost("CreateRole")]
+        public async Task<object> CreateRole()
+        {
+            ResultBase response = new();
+            var roleClient = await _roleManager.RoleExistsAsync("Cliente");
+            var roleAliado = await _roleManager.RoleExistsAsync("Aliado");
+            var roleAdmi = await _roleManager.RoleExistsAsync("Admi");
+
+            if (!roleClient)
+            {
+                var newRole = new ApplicationRole { Name = "Cliente" };
+                await _roleManager.CreateAsync(newRole);
+            }
+            if (!roleAliado)
+            {
+                var newRole = new ApplicationRole { Name = "Aliado" };
+                await _roleManager.CreateAsync(newRole);
+            }
+            if (!roleAdmi)
+            {
+                var newRole = new ApplicationRole { Name = "Administrador" };
+                await _roleManager.CreateAsync(newRole);
+            }
+            return response;
+
         }
     }
 }

@@ -6,9 +6,10 @@ namespace NutrifeelCore.Domain.Domain.Identity
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public virtual Person Person { get; set; }
         public virtual ICollection<ApplicationUserRole> UserRoles { get; set; }
         public virtual ICollection<ApplicationUserClaim> UserClaims { get; set; }
-        public virtual ICollection<ApplicationUserLogin> UserLogins { get; set; }
+        public virtual ICollection<ApplicationUserLogin> UserLogins { get; set; } 
         public virtual ICollection<ApplicationUserToken> UserTokens { get; set; }
     }
 }
