@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using NutrifeelCore.Domain.Context;
 using NutrifeelCore.Domain.Domain.Identity;
 using NutrifeelCore.Domain.Interface;

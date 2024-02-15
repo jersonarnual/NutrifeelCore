@@ -72,22 +72,22 @@ NutrifeelService.ConfigureServices(builder);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
+//{
+app.UseDeveloperExceptionPage();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutrifeelCore API");
-    });
-}
-else
-{
-    //The default HSTS value is 30 days. 
-    //You may want to change this for production
-    //scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutrifeelCore API");
+});
+//}
+//else
+//{
+//    //The default HSTS value is 30 days. 
+//    //You may want to change this for production
+//    //scenarios, see https://aka.ms/aspnetcore-hsts.
+//    app.UseHsts();
+//}
 
 app.UseHttpsRedirection();
 //app.UseHealthChecks("/Health");
@@ -119,3 +119,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
