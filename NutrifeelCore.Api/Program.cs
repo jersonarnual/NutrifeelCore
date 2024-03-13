@@ -48,6 +48,26 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddEndpointsApiExplorer();
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy(name: MyAllowSpecificOrigins,
+//                      policy =>
+//                      {
+//                          policy.WithOrigins("https://www.nutrifeel.com.co/")
+//                          .WithMethods("PUT", "DELETE", "GET"); ;
+//                      });
+//});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "MyAllowSpecificOrigins",
+                      policy =>
+                      {
+                          policy.AllowAnyOrigin();
+                      });
+});
 
 builder.Services.AddAuthentication(option =>
 {
@@ -92,7 +112,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 //app.UseHealthChecks("/Health");
 app.UseRouting();
-
+app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 
 app.UseAuthorization();
