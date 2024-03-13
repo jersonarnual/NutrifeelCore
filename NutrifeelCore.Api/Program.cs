@@ -62,10 +62,11 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: "MyAllowSpecificOrigins",
-                      policy =>
+    options.AddPolicy("NuevaPolitica", app =>                       
                       {
-                          policy.AllowAnyOrigin();
+                          app.AllowAnyOrigin().
+                          AllowAnyHeader().
+                          AllowAnyMethod();
                       });
 });
 
@@ -91,7 +92,7 @@ NutrifeelService.ConfigureServices(builder);
 
 
 var app = builder.Build();
-
+app.UseCors("NuevaPolitica");
 //if (app.Environment.IsDevelopment())
 //{
 app.UseDeveloperExceptionPage();
@@ -112,7 +113,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 //app.UseHealthChecks("/Health");
 app.UseRouting();
-app.UseCors(MyAllowSpecificOrigins);
+
 app.UseAuthentication();
 
 app.UseAuthorization();
